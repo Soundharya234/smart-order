@@ -2,12 +2,7 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
 
-// Use EXPO_PUBLIC_API_URL for production, fallback to localhost for development
-const BASE_URL = process.env.EXPO_PUBLIC_API_URL || (
-  Platform.OS === 'android'
-    ? 'http://10.0.2.2:5000/api'
-    : 'http://localhost:5000/api'
-);
+const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://smart-order-rg1e.onrender.com/api';
 
 const api = axios.create({ baseURL: BASE_URL });
 

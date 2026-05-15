@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api' });
+const API = axios.create({ baseURL: import.meta.env.VITE_API_URL || 'https://smart-order-rg1e.onrender.com/api' });
 
 API.interceptors.request.use((config) => {
   const token = localStorage.getItem('leoedi_token');
