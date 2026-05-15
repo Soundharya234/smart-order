@@ -17,7 +17,7 @@ export default function CheckoutPage() {
   const [successOrder, setSuccessOrder] = useState(null);
   const [couponCode, setCouponCode] = useState('');
   const [paymentMethod, setPaymentMethod] = useState('cod');
-  const [address, setAddress] = useState({ fullName: user?.name || '', phone: '', street: '', city: '', state: '', pincode: '', landmark: '' });
+  const [address, setAddress] = useState({ fullName: user?.name || '', phone: user?.phone || '', street: '', city: '', state: '', pincode: '', landmark: '' });
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const deliveryFee = subtotal >= 299 ? 0 : 29;

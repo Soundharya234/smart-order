@@ -15,6 +15,7 @@ import api from '../services/api';
 
 export default function CartScreen({ navigation }) {
   const { items, total, loading } = useSelector(s => s.cart);
+  const { user } = useSelector(s => s.auth);
   const dispatch = useDispatch();
   const r = useResponsive();
 
@@ -34,8 +35,8 @@ export default function CartScreen({ navigation }) {
       setPlacingOrder(true);
       const res = await api.post('/orders', {
         shippingAddress: {
-          fullName: 'Demo Customer',
-          phone: '9876543210',
+          fullName: user?.name || 'Demo Customer',
+          phone: user?.phone || '9876543210',
           street: address,
           city: 'Chennai',
           state: 'Tamil Nadu',
