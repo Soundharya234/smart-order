@@ -39,19 +39,7 @@ export default function LoginScreen({ navigation }) {
     }
   };
 
-  const demoLogin = async (role) => {
-    const creds = role === 'admin'
-      ? { email: 'admin@quickpick.com', password: 'LeoAdmin@2024' }
-      : { email: 'customer@demo.com', password: 'customer123' };
-    try {
-      const res = await dispatch(login(creds)).unwrap();
-      await dispatch(fetchCart());
-      Toast.show({ type: 'success', text1: `Logged in as ${role}! 🎉` });
-      navigation.replace(res.user.role === 'admin' ? 'Admin' : 'Main');
-    } catch {
-      Toast.show({ type: 'error', text1: 'Demo login failed' });
-    }
-  };
+
 
   const inputStyle = {
     height: r.inputHeight,
@@ -229,44 +217,7 @@ export default function LoginScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            {/* Demo Section */}
-            <View style={{
-              borderTopWidth: 1,
-              borderTopColor: '#F5F5F5',
-              padding: r.isMobile ? 20 : 28,
-            }}>
-              <Text style={{
-                fontSize: r.fontSize.xs,
-                fontWeight: '700',
-                color: '#BDBDBD',
-                textAlign: 'center',
-                letterSpacing: 1.5,
-                textTransform: 'uppercase',
-                marginBottom: 14,
-              }}>Quick Demo Access</Text>
-              <View style={{ flexDirection: 'row', gap: 10 }}>
-                {['customer', 'admin'].map(role => (
-                  <TouchableOpacity
-                    key={role}
-                    onPress={() => demoLogin(role)}
-                    style={{
-                      flex: 1,
-                      height: r.isMobile ? 42 : 46,
-                      borderWidth: 1.5,
-                      borderColor: '#E8E8E8',
-                      borderRadius: 12,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: '#fff',
-                    }}
-                  >
-                    <Text style={{ fontSize: r.fontSize.sm, fontWeight: '700', color: '#555' }}>
-                      {role === 'customer' ? '👤 Customer' : '⚙️ Admin'}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+
 
             {/* Footer */}
             <View style={{ backgroundColor: '#FAFAFA', padding: 16, borderTopWidth: 1, borderTopColor: '#F0F0F0' }}>

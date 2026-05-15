@@ -33,19 +33,6 @@ export default function LoginPage() {
     }
   };
 
-  const demoLogin = async (role) => {
-    const creds = role === 'admin'
-      ? { email: 'admin@quickpick.com', password: 'LeoAdmin@2024' }
-      : { email: 'customer@demo.com', password: 'customer123' };
-    setForm(f => ({ ...f, ...creds }));
-    try {
-      const res = await dispatch(login(creds)).unwrap();
-      await dispatch(fetchCart());
-      toast.success(`Logged in as ${role}! 🎉`);
-      navigate(res.user.role === 'admin' ? '/admin' : '/');
-    } catch { toast.error('Demo login failed. Please seed the database first.'); }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-20 mt-10">
       <div className="w-full max-w-lg">
@@ -108,21 +95,6 @@ export default function LoginPage() {
                 {loading ? 'Processing...' : 'Continue'}
               </motion.button>
             </form>
-
-            {/* Demo Logins */}
-            <div className="w-full max-w-sm mt-8 pt-8 border-t border-gray-100">
-              <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest text-center mb-4">Quick Demo Access</p>
-              <div className="grid grid-cols-2 gap-3">
-                <button onClick={() => demoLogin('customer')}
-                  className="py-2.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-bold hover:border-[#0C831F] hover:text-[#0C831F] transition-all bg-white">
-                  👤 Customer
-                </button>
-                <button onClick={() => demoLogin('admin')}
-                  className="py-2.5 rounded-lg border border-gray-200 text-gray-600 text-xs font-bold hover:border-[#0C831F] hover:text-[#0C831F] transition-all bg-white">
-                  ⚙️ Admin
-                </button>
-              </div>
-            </div>
           </div>
 
           {/* Footer of the card */}
