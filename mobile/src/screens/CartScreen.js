@@ -23,12 +23,19 @@ export default function CartScreen({ navigation }) {
   const [checkoutVisible, setCheckoutVisible] = useState(false);
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
+  const [city, setCity] = useState('Chennai');
+  const [stateName, setStateName] = useState('Tamil Nadu');
+  const [pincode, setPincode] = useState('600001');
   const [payMethod, setPayMethod] = useState('cod'); // 'cod' or 'upi'
   const [placingOrder, setPlacingOrder] = useState(false);
 
   const handlePlaceOrder = async () => {
     if (!address.trim()) {
       Toast.show({ type: 'error', text1: 'Address Required', text2: 'Please enter your shipping address' });
+      return;
+    }
+    if (!city.trim() || !stateName.trim() || !pincode.trim()) {
+      Toast.show({ type: 'error', text1: 'Details Required', text2: 'City, State, and Pincode are required' });
       return;
     }
     try {
@@ -38,9 +45,9 @@ export default function CartScreen({ navigation }) {
           fullName: user?.name || 'Demo Customer',
           phone: user?.phone || '9876543210',
           street: address,
-          city: 'Chennai',
-          state: 'Tamil Nadu',
-          pincode: '600001',
+          city: city,
+          state: stateName,
+          pincode: pincode,
         },
         paymentMethod: payMethod,
         notes: notes || undefined
@@ -258,10 +265,10 @@ export default function CartScreen({ navigation }) {
               <TextInput
                 value={address}
                 onChangeText={setAddress}
-                placeholder="Enter full address, landmark, pin code"
+                placeholder="Enter building number, street name, landmark"
                 placeholderTextColor="#A0A0A0"
                 multiline
-                numberOfLines={3}
+                numberOfLines={2}
                 style={{
                   backgroundColor: '#F5F5F5',
                   borderRadius: 12,
@@ -271,7 +278,74 @@ export default function CartScreen({ navigation }) {
                   textAlignVertical: 'top',
                   borderWidth: 1.5,
                   borderColor: '#E8E8E8',
-                  marginBottom: 16,
+                  marginBottom: 14,
+                }}
+              />
+
+              {/* City and State Row */}
+              <View style={{ flexDirection: 'row', gap: 12, marginBottom: 14 }}>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: r.fontSize.sm, fontWeight: '700', color: '#1C1C1C', marginBottom: 6 }}>
+                    City *
+                  </Text>
+                  <TextInput
+                    value={city}
+                    onChangeText={setCity}
+                    placeholder="City"
+                    placeholderTextColor="#A0A0A0"
+                    style={{
+                      backgroundColor: '#F5F5F5',
+                      borderRadius: 12,
+                      padding: 12,
+                      fontSize: r.fontSize.sm,
+                      color: '#1C1C1C',
+                      borderWidth: 1.5,
+                      borderColor: '#E8E8E8',
+                    }}
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={{ fontSize: r.fontSize.sm, fontWeight: '700', color: '#1C1C1C', marginBottom: 6 }}>
+                    State *
+                  </Text>
+                  <TextInput
+                    value={stateName}
+                    onChangeText={setStateName}
+                    placeholder="State"
+                    placeholderTextColor="#A0A0A0"
+                    style={{
+                      backgroundColor: '#F5F5F5',
+                      borderRadius: 12,
+                      padding: 12,
+                      fontSize: r.fontSize.sm,
+                      color: '#1C1C1C',
+                      borderWidth: 1.5,
+                      borderColor: '#E8E8E8',
+                    }}
+                  />
+                </View>
+              </View>
+
+              {/* Pincode */}
+              <Text style={{ fontSize: r.fontSize.sm, fontWeight: '700', color: '#1C1C1C', marginBottom: 6 }}>
+                Pincode *
+              </Text>
+              <TextInput
+                value={pincode}
+                onChangeText={setPincode}
+                placeholder="Pincode"
+                placeholderTextColor="#A0A0A0"
+                keyboardType="numeric"
+                maxLength={6}
+                style={{
+                  backgroundColor: '#F5F5F5',
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: r.fontSize.sm,
+                  color: '#1C1C1C',
+                  borderWidth: 1.5,
+                  borderColor: '#E8E8E8',
+                  marginBottom: 14,
                 }}
               />
 
