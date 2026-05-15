@@ -73,7 +73,7 @@ const seed = async () => {
     ]);
     console.log('🗑️  Cleared existing data');
 
-    // Admin user
+    // Admin user 1
     const admin = await User.create({
       name: 'LeoFrankline Edison',
       email: 'admin@quickpick.com',
@@ -81,7 +81,17 @@ const seed = async () => {
       role: 'admin',
       isVerified: true,
     });
-    console.log('👤 Admin created:', admin.email);
+    console.log('👤 Admin 1 created:', admin.email);
+
+    // Admin user 2
+    const admin2 = await User.create({
+      name: 'Soundharya',
+      email: 'soundharya@quickpick.com',
+      password: 'Admin@2026',
+      role: 'admin',
+      isVerified: true,
+    });
+    console.log('👤 Admin 2 created:', admin2.email);
 
     // Sample customer
     await User.create({
@@ -121,7 +131,8 @@ const seed = async () => {
 
     console.log('\n🎉 Database seeded successfully!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('Admin: admin@quickpick.com | LeoAdmin@2024');
+    console.log('Admin 1: admin@quickpick.com | LeoAdmin@2024');
+    console.log('Admin 2: soundharya@quickpick.com | Admin@2026');
     console.log('Customer: customer@demo.com | customer123');
     console.log('Coupons: WELCOME50, LEOEDI20, FLAT100, FRESH30');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
