@@ -125,11 +125,15 @@ const seed = async () => {
     console.log('Customer: customer@demo.com | customer123');
     console.log('Coupons: WELCOME50, LEOEDI20, FLAT100, FRESH30');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    process.exit(0);
+    return { success: true, message: 'Database seeded successfully!' };
   } catch (err) {
     console.error('❌ Seed error:', err);
-    process.exit(1);
+    throw err;
   }
 };
 
-seed();
+if (require.main === module) {
+  seed().then(() => process.exit(0)).catch(() => process.exit(1));
+}
+
+module.exports = seed;

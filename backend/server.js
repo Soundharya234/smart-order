@@ -29,6 +29,17 @@ app.get('/api/health', (req, res) => {
   res.json({ success: true, message: '🚀 QuickPick API is running!', timestamp: new Date() });
 });
 
+// Database Seeder
+app.get('/api/seed', async (req, res, next) => {
+  try {
+    const seed = require('./seed');
+    await seed();
+    res.json({ success: true, message: '🌱 Database seeded successfully on production!' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Error handler
 app.use(errorHandler);
 
