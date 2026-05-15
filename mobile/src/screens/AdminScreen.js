@@ -260,14 +260,28 @@ export default function AdminScreen({ navigation }) {
         <Text style={{ color: '#878787', fontSize: r.fontSize.xs, marginTop: 2 }}>Admin Panel</Text>
       </View>
       <View style={{ paddingHorizontal: 12, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#2E2E2E' }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <View style={{ width: 36, height: 36, backgroundColor: '#F8CB46', borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontWeight: '800', color: '#000', fontSize: r.fontSize.sm }}>{user?.name?.charAt(0)}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 }}>
+            <View style={{ width: 36, height: 36, backgroundColor: '#F8CB46', borderRadius: 10, alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontWeight: '800', color: '#000', fontSize: r.fontSize.sm }}>{user?.name?.charAt(0) || 'A'}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={{ color: '#fff', fontWeight: '700', fontSize: r.fontSize.sm }} numberOfLines={1}>{user?.name?.split(' ')[0] || 'Admin'}</Text>
+              <Text style={{ color: '#00C853', fontSize: r.fontSize.xs }}>● Admin</Text>
+            </View>
           </View>
-          <View>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: r.fontSize.sm }}>{user?.name?.split(' ')[0]}</Text>
-            <Text style={{ color: '#00C853', fontSize: r.fontSize.xs }}>● Admin</Text>
-          </View>
+          <TouchableOpacity
+            onPress={() => openEditUserModal(user)}
+            style={{
+              padding: 8,
+              backgroundColor: '#2E2E2E',
+              borderRadius: 8,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="lock-closed" size={14} color="#F8CB46" />
+          </TouchableOpacity>
         </View>
       </View>
       <View style={{ flex: 1, padding: 12, gap: 4 }}>
