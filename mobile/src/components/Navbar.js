@@ -58,7 +58,7 @@ export default function Navbar({ navigation, searchQuery, setSearchQuery }) {
           {!r.isMobile && (
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 28 }}>
               {navLinks.map(l => (
-                <TouchableOpacity key={l.screen} onPress={() => navigation.navigate(l.screen)}>
+                <TouchableOpacity key={l.screen} onPress={() => navigation.navigate('Main', { screen: l.screen })}>
                   <Text style={{ fontSize: r.fontSize.sm, fontWeight: '600', color: '#1C1C1C' }}>{l.label}</Text>
                 </TouchableOpacity>
               ))}
@@ -198,7 +198,7 @@ export default function Navbar({ navigation, searchQuery, setSearchQuery }) {
             {navLinks.map(l => (
               <TouchableOpacity
                 key={l.screen}
-                onPress={() => { navigation.navigate(l.screen); setMenuOpen(false); }}
+                onPress={() => { navigation.navigate('Main', { screen: l.screen }); setMenuOpen(false); }}
                 style={{
                   paddingVertical: 16,
                   borderBottomWidth: 1,
