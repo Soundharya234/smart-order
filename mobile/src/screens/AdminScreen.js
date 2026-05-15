@@ -42,6 +42,15 @@ export default function AdminScreen({ navigation }) {
   const [formImage, setFormImage] = useState('');
   const [formDiscount, setFormDiscount] = useState('0');
 
+  // CRUD User Form States
+  const [userModalVisible, setUserModalVisible] = useState(false);
+  const [editingUser, setEditingUser] = useState(null);
+  const [formUserName, setFormUserName] = useState('');
+  const [formUserEmail, setFormUserEmail] = useState('');
+  const [formUserPassword, setFormUserPassword] = useState('');
+  const [formUserPhone, setFormUserPhone] = useState('');
+  const [formUserRole, setFormUserRole] = useState('customer');
+
   useEffect(() => {
     fetchAll();
   }, []);
@@ -163,6 +172,76 @@ export default function AdminScreen({ navigation }) {
     } catch (e) {
       console.log('Update status error:', e.message);
       Toast.show({ type: 'error', text1: 'Failed to update status' });
+    }
+  };
+
+  // User CRUD Handlers
+  const openAddUserModal = () => {
+    setEditingUser(null);
+    setFormUserName('');
+    setFormUserEmail('');
+    setFormUserPassword('');
+    setFormUserPhone('');
+    setFormUserRole('customer');
+    setUserModalVisible(true);
+  };
+
+  const openEditUserModal = (u) => {
+    setEditingUser(u);
+    setFormUserName(u.name || '');
+    setFormUserEmail(u.email || '');
+    setFormUserPassword('');
+    setFormUserPhone(u.phone || '');
+    setFormUserRole(u.role || 'customer');
+    setUserModalVisible(true);
+  };
+
+  const handleDeleteUser = async (id) => {
+    try {
+      const res = await api.delete(`/users/admin/${id}`);
+      if (res.data.success) {
+        Toast.show({ type: 'success', text1: 'User Deleted 🗑️' });
+        fetchAll();
+      }
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Failed to delete user' });
+    }
+  };
+
+  const handleSaveUser = async () => {
+    if (!formUserName.trim() || !formUserEmail.trim() || (!editingUser && !formUserPassword.trim())) {
+      Toast.show({ type: 'error', text1: 'Validation Error', text2: 'Name, Email and Password are required' });
+      return;
+    }
+
+    const payload = {
+      name: formUserName,
+      email: formUserEmail,
+      phone: formUserPhone,
+      role: formUserRole,
+    };
+    if (formUserPassword.trim()) {
+      payload.password = formUserPassword;
+    }
+
+    try {
+      if (editingUser) {
+        const res = await api.put(`/users/admin/${editingUser._id}`, payload);
+        if (res.data.success) {
+          Toast.show({ type: 'success', text1: 'User Updated 🎉' });
+          setUserModalVisible(false);
+          fetchAll();
+        }
+      } else {
+        const res = await api.post('/users/admin/create', payload);
+        if (res.data.success) {
+          Toast.show({ type: 'success', text1: 'User Created 🎉' });
+          setUserModalVisible(false);
+          fetchAll();
+        }
+      }
+    } catch (e) {
+      Toast.show({ type: 'error', text1: 'Save Failed', text2: e.response?.data?.message || 'Error occurred' });
     }
   };
 
@@ -507,9 +586,27 @@ export default function AdminScreen({ navigation }) {
       case 'Users':
         return (
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: r.isMobile ? 16 : 24 }}>
-            <Text style={{ fontSize: r.fontSize.xl, fontWeight: '800', color: '#fff', marginBottom: 20 }}>
-              Users ({users.length})
-            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: r.fontSize.xl, fontWeight: '800', color: '#fff' }}>
+                Users ({users.length})
+              </Text>
+              <TouchableOpacity
+                onPress={openAddUserModal}
+                style={{
+                  backgroundColor: '#F8CB46',
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: 10,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <Ionicons name="add" size={18} color="#000" />
+                <Text style={{ color: '#000', fontWeight: '700', fontSize: r.fontSize.sm }}>Add User</Text>
+              </TouchableOpacity>
+            </View>
+
             {users.map(u => (
               <View key={u._id} style={{
                 backgroundColor: '#1E1E1E', borderRadius: 12, padding: 14,
@@ -526,15 +623,39 @@ export default function AdminScreen({ navigation }) {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={{ color: '#fff', fontWeight: '700', fontSize: r.fontSize.sm }}>{u.name}</Text>
-                  <Text style={{ color: '#878787', fontSize: r.fontSize.xs }}>{u.email}</Text>
+                  <Text style={{ color: '#878787', fontSize: r.fontSize.xs }} numberOfLines={1}>{u.email}</Text>
                 </View>
-                <View style={{
-                  backgroundColor: u.role === 'admin' ? '#F8CB4622' : '#0C831F22',
-                  paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
-                }}>
-                  <Text style={{ color: u.role === 'admin' ? '#F8CB46' : '#0C831F', fontSize: r.fontSize.xs, fontWeight: '700' }}>
-                    {u.role}
-                  </Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <View style={{
+                    backgroundColor: u.role === 'admin' ? '#F8CB4622' : '#0C831F22',
+                    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8,
+                  }}>
+                    <Text style={{ color: u.role === 'admin' ? '#F8CB46' : '#0C831F', fontSize: r.fontSize.xs, fontWeight: '700' }}>
+                      {u.role}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => openEditUserModal(u)}
+                    style={{
+                      backgroundColor: '#2E2E2E',
+                      width: 32, height: 32, borderRadius: 8,
+                      alignItems: 'center', justifyContent: 'center',
+                    }}
+                  >
+                    <Ionicons name="pencil" size={14} color="#F8CB46" />
+                  </TouchableOpacity>
+                  {u._id !== user?._id && (
+                    <TouchableOpacity
+                      onPress={() => handleDeleteUser(u._id)}
+                      style={{
+                        backgroundColor: 'rgba(220,38,38,0.1)',
+                        width: 32, height: 32, borderRadius: 8,
+                        alignItems: 'center', justifyContent: 'center',
+                      }}
+                    >
+                      <Ionicons name="trash" size={14} color="#DC2626" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               </View>
             ))}
@@ -791,6 +912,151 @@ export default function AdminScreen({ navigation }) {
               >
                 <Text style={{ color: '#000', fontWeight: '800', fontSize: r.fontSize.base }}>
                   {editingProduct ? 'Update Product' : 'Create Product'}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
+      {/* CRUD User Modal Sheet */}
+      <Modal
+        visible={userModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setUserModalVisible(false)}
+      >
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' }}
+        >
+          <View style={{
+            backgroundColor: '#121212',
+            borderTopLeftRadius: 24,
+            borderTopRightRadius: 24,
+            padding: 24,
+            maxHeight: '90%',
+            borderWidth: 1,
+            borderColor: '#2E2E2E',
+          }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: r.fontSize.xl, fontWeight: '800', color: '#fff' }}>
+                {editingUser ? 'Edit User ✏️' : 'Add User/Admin 👥'}
+              </Text>
+              <TouchableOpacity onPress={() => setUserModalVisible(false)}>
+                <Ionicons name="close-circle" size={28} color="#878787" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ gap: 14 }}>
+              {/* User Name */}
+              <View>
+                <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>Full Name *</Text>
+                <TextInput
+                  value={formUserName}
+                  onChangeText={setFormUserName}
+                  placeholder="e.g. John Doe"
+                  placeholderTextColor="#878787"
+                  style={{
+                    backgroundColor: '#1E1E1E', borderRadius: 10, padding: 12, color: '#fff', fontSize: r.fontSize.sm,
+                    borderWidth: 1.5, borderColor: '#2E2E2E',
+                  }}
+                />
+              </View>
+
+              {/* Email Address */}
+              <View>
+                <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>Email Address *</Text>
+                <TextInput
+                  value={formUserEmail}
+                  onChangeText={setFormUserEmail}
+                  placeholder="e.g. john@example.com"
+                  placeholderTextColor="#878787"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  style={{
+                    backgroundColor: '#1E1E1E', borderRadius: 10, padding: 12, color: '#fff', fontSize: r.fontSize.sm,
+                    borderWidth: 1.5, borderColor: '#2E2E2E',
+                  }}
+                />
+              </View>
+
+              {/* Password */}
+              <View>
+                <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>
+                  {editingUser ? 'Password (Leave blank to keep current)' : 'Password *'}
+                </Text>
+                <TextInput
+                  value={formUserPassword}
+                  onChangeText={setFormUserPassword}
+                  placeholder="Password"
+                  placeholderTextColor="#878787"
+                  secureTextEntry
+                  autoCapitalize="none"
+                  style={{
+                    backgroundColor: '#1E1E1E', borderRadius: 10, padding: 12, color: '#fff', fontSize: r.fontSize.sm,
+                    borderWidth: 1.5, borderColor: '#2E2E2E',
+                  }}
+                />
+              </View>
+
+              {/* Phone Number */}
+              <View>
+                <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>Phone Number</Text>
+                <TextInput
+                  value={formUserPhone}
+                  onChangeText={setFormUserPhone}
+                  placeholder="e.g. 9876543210"
+                  placeholderTextColor="#878787"
+                  keyboardType="phone-pad"
+                  style={{
+                    backgroundColor: '#1E1E1E', borderRadius: 10, padding: 12, color: '#fff', fontSize: r.fontSize.sm,
+                    borderWidth: 1.5, borderColor: '#2E2E2E',
+                  }}
+                />
+              </View>
+
+              {/* Role Selector */}
+              <View>
+                <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>Role *</Text>
+                <View style={{ flexDirection: 'row', gap: 10 }}>
+                  <TouchableOpacity
+                    onPress={() => setFormUserRole('customer')}
+                    style={{
+                      flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center',
+                      backgroundColor: formUserRole === 'customer' ? '#0C831F' : '#1E1E1E',
+                      borderWidth: 1.5, borderColor: formUserRole === 'customer' ? '#0C831F' : '#2E2E2E',
+                    }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '700', fontSize: r.fontSize.xs }}>Customer</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => setFormUserRole('admin')}
+                    style={{
+                      flex: 1, paddingVertical: 12, borderRadius: 10, alignItems: 'center',
+                      backgroundColor: formUserRole === 'admin' ? '#F8CB46' : '#1E1E1E',
+                      borderWidth: 1.5, borderColor: formUserRole === 'admin' ? '#F8CB46' : '#2E2E2E',
+                    }}
+                  >
+                    <Text style={{ color: formUserRole === 'admin' ? '#000' : '#fff', fontWeight: '700', fontSize: r.fontSize.xs }}>Admin</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              {/* Save Button */}
+              <TouchableOpacity
+                onPress={handleSaveUser}
+                style={{
+                  backgroundColor: '#F8CB46',
+                  height: 48,
+                  borderRadius: 12,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 10,
+                }}
+              >
+                <Text style={{ color: '#000', fontWeight: '800', fontSize: r.fontSize.base }}>
+                  {editingUser ? 'Update User' : 'Create Account'}
                 </Text>
               </TouchableOpacity>
             </ScrollView>
