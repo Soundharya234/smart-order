@@ -53,10 +53,19 @@ exports.getMe = async (req, res) => {
 // @PUT /api/auth/profile
 exports.updateProfile = async (req, res, next) => {
   try {
-    const { name, phone } = req.body;
-    const user = await User.findByIdAndUpdate(
-      req.user._id, { name, phone }, { new: true, runValidators: true }
-    );
-    res.json({ success: true, user });
+    const { name, phone, password } = req.body;
+    const user = await User.findById(req.user._id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    if (name) user.name = name;
+    if (phone) user.phone = phone;
+    if (password) user.password = password;
+
+    await user.save();
+    
+    res.json({
+      success: true,
+      user: { _id: user._id, name: user.name, email: user.email, role: user.role, phone: user.phone }
+    });
   } catch (error) { next(error); }
 };
