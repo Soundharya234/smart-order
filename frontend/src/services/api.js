@@ -76,5 +76,8 @@ export const deleteAddress = (id) => API.delete(`/users/addresses/${id}`);
 export const toggleWishlist = (productId) => API.put(`/users/wishlist/${productId}`);
 export const getAllUsers = (params) => API.get('/users/admin/all', { params });
 export const toggleUserStatus = (id) => API.put(`/users/admin/${id}/toggle`);
+export const createAdminUser = (data) => API.post('/users/admin/create', data);
+export const updateAdminUser = (id, data) => API.put(`/users/admin/${id}`, data);
+export const deleteAdminUser = (id) => API.delete(`/users/admin/${id}`);
 
 export default API;
