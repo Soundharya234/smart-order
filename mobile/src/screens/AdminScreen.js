@@ -823,6 +823,33 @@ export default function AdminScreen({ navigation }) {
                 </View>
               </View>
 
+              {/* Unit Presets Scrollable */}
+              <View style={{ marginBottom: 6 }}>
+                <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>Quick Select Unit</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View style={{ flexDirection: 'row', gap: 8 }}>
+                    {['1/4 kg', '1/2 kg', '1 kg', '2 kg', '3 kg', '4 kg', '5 kg', '6 kg', '7 kg', '8 kg', '9 kg', '10 kg', '250g', '500g', '1 pc', '6 pcs', '12 pcs', '1L', '500ml'].map(u => {
+                      const isSelected = formUnit === u;
+                      return (
+                        <TouchableOpacity
+                          key={u}
+                          onPress={() => setFormUnit(u)}
+                          style={{
+                            paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8,
+                            backgroundColor: isSelected ? '#F8CB46' : '#1E1E1E',
+                            borderWidth: 1.5, borderColor: isSelected ? '#F8CB46' : '#2E2E2E',
+                          }}
+                        >
+                          <Text style={{ color: isSelected ? '#000' : '#878787', fontWeight: '700', fontSize: r.fontSize.xs }}>
+                            {u}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
+              </View>
+
               {/* Unit & Stock Row */}
               <View style={{ flexDirection: 'row', gap: 12 }}>
                 <View style={{ flex: 1 }}>

@@ -4,6 +4,28 @@ import { FiPlus, FiEdit, FiTrash2, FiSearch, FiX, FiCheck, FiFilter, FiImage, Fi
 import * as api from '../../services/api';
 import toast from 'react-hot-toast';
 
+const STANDARD_UNITS = [
+  '1/4 kg',
+  '1/2 kg',
+  '1 kg',
+  '2 kg',
+  '3 kg',
+  '4 kg',
+  '5 kg',
+  '6 kg',
+  '7 kg',
+  '8 kg',
+  '9 kg',
+  '10 kg',
+  '250g',
+  '500g',
+  '1 pc',
+  '6 pcs',
+  '12 pcs',
+  '1L',
+  '500ml'
+];
+
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -270,8 +292,50 @@ export default function AdminProducts() {
                   </div>
                   <div>
                     <label className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2.5 block ml-1">Unit Weight/Qty</label>
-                    <input type="text" placeholder="e.g. 500g, 1 pc" required value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}
-                      className="w-full bg-[#1E1E1E] border border-white/5 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:outline-none focus:border-[#FFD600] transition-all" />
+                    <select 
+                      value={STANDARD_UNITS.includes(form.unit) ? form.unit : 'custom'} 
+                      onChange={e => {
+                        const val = e.target.value;
+                        if (val === 'custom') {
+                          setForm(f => ({ ...f, unit: '' }));
+                        } else {
+                          setForm(f => ({ ...f, unit: val }));
+                        }
+                      }}
+                      className="w-full bg-[#1E1E1E] border border-white/5 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:outline-none focus:border-[#FFD600] transition-all appearance-none mb-3"
+                    >
+                      <option value="1/4 kg">1/4 kg (250g)</option>
+                      <option value="1/2 kg">1/2 kg (500g)</option>
+                      <option value="1 kg">1 kg</option>
+                      <option value="2 kg">2 kg</option>
+                      <option value="3 kg">3 kg</option>
+                      <option value="4 kg">4 kg</option>
+                      <option value="5 kg">5 kg</option>
+                      <option value="6 kg">6 kg</option>
+                      <option value="7 kg">7 kg</option>
+                      <option value="8 kg">8 kg</option>
+                      <option value="9 kg">9 kg</option>
+                      <option value="10 kg">10 kg</option>
+                      <option value="250g">250g</option>
+                      <option value="500g">500g</option>
+                      <option value="1 pc">1 pc</option>
+                      <option value="6 pcs">6 pcs</option>
+                      <option value="12 pcs">12 pcs</option>
+                      <option value="1L">1 Liter</option>
+                      <option value="500ml">500 ml</option>
+                      <option value="custom">Custom...</option>
+                    </select>
+                    
+                    {(!STANDARD_UNITS.includes(form.unit) || form.unit === '') && (
+                      <input 
+                        type="text" 
+                        placeholder="Type custom weight/qty (e.g. 250g)" 
+                        required 
+                        value={form.unit} 
+                        onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}
+                        className="w-full bg-[#1E1E1E] border border-white/5 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:outline-none focus:border-[#FFD600] transition-all" 
+                      />
+                    )}
                   </div>
                 </div>
 
