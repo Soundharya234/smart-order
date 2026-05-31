@@ -16,6 +16,28 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const TABS = ['Dashboard', 'Products', 'Orders', 'Users'];
 
+const parseWeightInKg = (unitStr) => {
+  if (!unitStr) return null;
+  const str = unitStr.toLowerCase().trim();
+  
+  if (str.includes('1/4') && str.includes('kg')) return 0.25;
+  if ((str.includes('1/2') || str.includes('half')) && str.includes('kg')) return 0.5;
+  
+  if (str.endsWith('g') && !str.includes('k')) {
+    const num = parseFloat(str.replace('g', ''));
+    if (!isNaN(num)) return num / 1000;
+  }
+  if (str.endsWith('gm')) {
+    const num = parseFloat(str.replace('gm', ''));
+    if (!isNaN(num)) return num / 1000;
+  }
+  if (str.includes('kg')) {
+    const num = parseFloat(str.replace('kg', ''));
+    if (!isNaN(num)) return num;
+  }
+  return null;
+};
+
 export default function AdminScreen({ navigation }) {
   const { user } = useSelector(s => s.auth);
   const dispatch = useDispatch();
@@ -41,6 +63,20 @@ export default function AdminScreen({ navigation }) {
   const [formCategory, setFormCategory] = useState('');
   const [formImage, setFormImage] = useState('');
   const [formDiscount, setFormDiscount] = useState('0');
+
+  const [basePrice, setBasePrice] = useState(0);
+  const [baseMrp, setBaseMrp] = useState(0);
+
+  const handleUnitChange = (newUnit) => {
+    setFormUnit(newUnit);
+    const mult = parseWeightInKg(newUnit);
+    if (mult && basePrice > 0) {
+      setFormPrice(String(Math.round(basePrice * mult * 100) / 100));
+    }
+    if (mult && baseMrp > 0) {
+      setFormMrp(String(Math.round(baseMrp * mult * 100) / 100));
+    }
+  };
 
   // CRUD User Form States
   const [userModalVisible, setUserModalVisible] = useState(false);
@@ -96,6 +132,8 @@ export default function AdminScreen({ navigation }) {
     setFormCategory(categories[0]?._id || '');
     setFormImage('');
     setFormDiscount('0');
+    setBasePrice(0);
+    setBaseMrp(0);
     setProductModalVisible(true);
   };
 
@@ -109,6 +147,9 @@ export default function AdminScreen({ navigation }) {
     setFormCategory(p.category?._id || p.category || categories[0]?._id || '');
     setFormImage(p.images?.[0] || '');
     setFormDiscount(String(p.discount || '0'));
+    const mult = parseWeightInKg(p.unit) || 1;
+    setBasePrice((p.price || 0) / mult);
+    setBaseMrp((p.mrp || 0) / mult);
     setProductModalVisible(true);
   };
 
@@ -797,7 +838,12 @@ export default function AdminScreen({ navigation }) {
                   <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>Price (₹) *</Text>
                   <TextInput
                     value={formPrice}
-                    onChangeText={setFormPrice}
+                    onChangeText={(val) => {
+                      setFormPrice(val);
+                      const num = parseFloat(val) || 0;
+                      const mult = parseWeightInKg(formUnit) || 1;
+                      setBasePrice(num / mult);
+                    }}
                     placeholder="e.g. 50"
                     placeholderTextColor="#878787"
                     keyboardType="numeric"
@@ -811,7 +857,12 @@ export default function AdminScreen({ navigation }) {
                   <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>MRP (₹)</Text>
                   <TextInput
                     value={formMrp}
-                    onChangeText={setFormMrp}
+                    onChangeText={(val) => {
+                      setFormMrp(val);
+                      const num = parseFloat(val) || 0;
+                      const mult = parseWeightInKg(formUnit) || 1;
+                      setBaseMrp(num / mult);
+                    }}
                     placeholder="e.g. 60"
                     placeholderTextColor="#878787"
                     keyboardType="numeric"
@@ -833,7 +884,7 @@ export default function AdminScreen({ navigation }) {
                       return (
                         <TouchableOpacity
                           key={u}
-                          onPress={() => setFormUnit(u)}
+                          onPress={() => handleUnitChange(u)}
                           style={{
                             paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8,
                             backgroundColor: isSelected ? '#F8CB46' : '#1E1E1E',
@@ -856,7 +907,7 @@ export default function AdminScreen({ navigation }) {
                   <Text style={{ color: '#fff', fontSize: r.fontSize.xs, fontWeight: '700', marginBottom: 6 }}>Unit</Text>
                   <TextInput
                     value={formUnit}
-                    onChangeText={setFormUnit}
+                    onChangeText={handleUnitChange}
                     placeholder="e.g. 1 kg / 500g"
                     placeholderTextColor="#878787"
                     style={{

@@ -26,6 +26,28 @@ const STANDARD_UNITS = [
   '500ml'
 ];
 
+const parseWeightInKg = (unitStr) => {
+  if (!unitStr) return null;
+  const str = unitStr.toLowerCase().trim();
+  
+  if (str.includes('1/4') && str.includes('kg')) return 0.25;
+  if ((str.includes('1/2') || str.includes('half')) && str.includes('kg')) return 0.5;
+  
+  if (str.endsWith('g') && !str.includes('k')) {
+    const num = parseFloat(str.replace('g', ''));
+    if (!isNaN(num)) return num / 1000;
+  }
+  if (str.endsWith('gm')) {
+    const num = parseFloat(str.replace('gm', ''));
+    if (!isNaN(num)) return num / 1000;
+  }
+  if (str.includes('kg')) {
+    const num = parseFloat(str.replace('kg', ''));
+    if (!isNaN(num)) return num;
+  }
+  return null;
+};
+
 export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -35,6 +57,23 @@ export default function AdminProducts() {
   const [showModal, setShowModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: '', price: '', mrp: '', unit: '1 pc', stock: '', category: '', discount: 0, isFeatured: false, isBestSeller: false, images: [''] });
+
+  const [basePrice, setBasePrice] = useState(0);
+  const [baseMrp, setBaseMrp] = useState(0);
+
+  const handleUnitChange = (newUnit) => {
+    setForm(f => {
+      const updated = { ...f, unit: newUnit };
+      const mult = parseWeightInKg(newUnit);
+      if (mult && basePrice > 0) {
+        updated.price = Math.round(basePrice * mult * 100) / 100;
+      }
+      if (mult && baseMrp > 0) {
+        updated.mrp = Math.round(baseMrp * mult * 100) / 100;
+      }
+      return updated;
+    });
+  };
 
   const load = () => {
     setLoading(true);
@@ -63,9 +102,14 @@ export default function AdminProducts() {
         isBestSeller: product.isBestSeller, 
         images: product.images?.length ? product.images : [''] 
       });
+      const mult = parseWeightInKg(product.unit) || 1;
+      setBasePrice((product.price || 0) / mult);
+      setBaseMrp((product.mrp || 0) / mult);
     } else {
       setEditing(null);
       setForm({ name: '', price: '', mrp: '', unit: '1 pc', stock: '', category: '', discount: 0, isFeatured: false, isBestSeller: false, images: [''] });
+      setBasePrice(0);
+      setBaseMrp(0);
     }
     setShowModal(true);
   };
@@ -297,9 +341,9 @@ export default function AdminProducts() {
                       onChange={e => {
                         const val = e.target.value;
                         if (val === 'custom') {
-                          setForm(f => ({ ...f, unit: '' }));
+                          handleUnitChange('');
                         } else {
-                          setForm(f => ({ ...f, unit: val }));
+                          handleUnitChange(val);
                         }
                       }}
                       className="w-full bg-[#1E1E1E] border border-white/5 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:outline-none focus:border-[#FFD600] transition-all appearance-none mb-3"
@@ -332,7 +376,7 @@ export default function AdminProducts() {
                         placeholder="Type custom weight/qty (e.g. 250g)" 
                         required 
                         value={form.unit} 
-                        onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}
+                        onChange={e => handleUnitChange(e.target.value)}
                         className="w-full bg-[#1E1E1E] border border-white/5 rounded-2xl px-5 py-4 text-sm font-bold text-white focus:outline-none focus:border-[#FFD600] transition-all" 
                       />
                     )}
@@ -357,13 +401,33 @@ export default function AdminProducts() {
                   </div>
                   <div>
                     <label className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2.5 block ml-1">Sale Price (₹)</label>
-                    <input type="number" required value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-                      className="w-full bg-[#121212] border border-white/5 rounded-2xl px-5 py-4 text-sm font-black text-[#FFD600] focus:outline-none focus:border-[#FFD600] transition-all" />
+                    <input 
+                      type="number" 
+                      required 
+                      value={form.price} 
+                      onChange={e => {
+                        const val = parseFloat(e.target.value) || 0;
+                        setForm(f => ({ ...f, price: e.target.value }));
+                        const mult = parseWeightInKg(form.unit) || 1;
+                        setBasePrice(val / mult);
+                      }}
+                      className="w-full bg-[#121212] border border-white/5 rounded-2xl px-5 py-4 text-sm font-black text-[#FFD600] focus:outline-none focus:border-[#FFD600] transition-all" 
+                    />
                   </div>
                   <div>
                     <label className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2.5 block ml-1">Market Price / MRP (₹)</label>
-                    <input type="number" required value={form.mrp} onChange={e => setForm(f => ({ ...f, mrp: e.target.value }))}
-                      className="w-full bg-[#121212] border border-white/5 rounded-2xl px-5 py-4 text-sm font-bold text-gray-500 focus:outline-none focus:border-[#FFD600] transition-all" />
+                    <input 
+                      type="number" 
+                      required 
+                      value={form.mrp} 
+                      onChange={e => {
+                        const val = parseFloat(e.target.value) || 0;
+                        setForm(f => ({ ...f, mrp: e.target.value }));
+                        const mult = parseWeightInKg(form.unit) || 1;
+                        setBaseMrp(val / mult);
+                      }}
+                      className="w-full bg-[#121212] border border-white/5 rounded-2xl px-5 py-4 text-sm font-bold text-gray-500 focus:outline-none focus:border-[#FFD600] transition-all" 
+                    />
                   </div>
                 </div>
 
