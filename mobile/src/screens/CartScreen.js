@@ -67,7 +67,7 @@ export default function CartScreen({ navigation }) {
     }
   };
 
-  if (loading && !checkoutVisible) {
+  if (loading && !checkoutVisible && items.length === 0) {
     return (
       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator size="large" color="#0C831F" />
@@ -167,15 +167,33 @@ export default function CartScreen({ navigation }) {
                         : dispatch(removeItem(item.product?._id))
                       }
                       style={{ padding: 8, backgroundColor: '#F5F5F5' }}
+                      disabled={loading}
                     >
                       <Ionicons name={item.quantity === 1 ? 'trash-outline' : 'remove'} size={16} color={item.quantity === 1 ? '#DC2626' : '#1C1C1C'} />
                     </TouchableOpacity>
-                    <Text style={{ paddingHorizontal: 14, fontWeight: '800', color: '#1C1C1C', fontSize: r.fontSize.base }}>
-                      {item.quantity}
-                    </Text>
+                    <TextInput
+                      value={String(item.quantity)}
+                      keyboardType="numeric"
+                      onChangeText={(val) => {
+                        const parsed = parseInt(val, 10);
+                        if (!isNaN(parsed) && parsed > 0) {
+                          dispatch(updateItem({ productId: item.product?._id, qty: parsed }));
+                        }
+                      }}
+                      style={{
+                        paddingHorizontal: 10,
+                        paddingVertical: 4,
+                        fontWeight: '800',
+                        color: '#1C1C1C',
+                        fontSize: r.fontSize.base,
+                        textAlign: 'center',
+                        minWidth: 40,
+                      }}
+                    />
                     <TouchableOpacity
                       onPress={() => dispatch(updateItem({ productId: item.product?._id, qty: item.quantity + 1 }))}
                       style={{ padding: 8, backgroundColor: '#0C831F' }}
+                      disabled={loading}
                     >
                       <Ionicons name="add" size={16} color="#fff" />
                     </TouchableOpacity>
