@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FiShoppingCart, FiSearch, FiUser, FiMapPin, FiLogOut, FiPackage, FiHeart, FiMenu, FiX, FiChevronRight } from 'react-icons/fi';
 import { toggleCart } from '../store/slices/cartSlice';
 import { logout } from '../store/slices/authSlice';
-import { searchSuggestions } from '../services/api';
+import { searchSuggestions, getStoreSettings } from '../services/api';
 import toast from 'react-hot-toast';
 
 export default function Navbar() {
@@ -19,8 +19,19 @@ export default function Navbar() {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isStoreOpen, setIsStoreOpen] = useState(true);
   const searchRef = useRef(null);
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
+
+  // Fetch store availability on mount & poll every 30s
+  useEffect(() => {
+    const fetchStatus = () => {
+      getStoreSettings().then(res => setIsStoreOpen(res.data.isStoreOpen)).catch(() => {});
+    };
+    fetchStatus();
+    const interval = setInterval(fetchStatus, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);
@@ -100,14 +111,35 @@ export default function Navbar() {
                 <span className="text-[#0C831F] font-black text-4xl tracking-tighter">Quick<span className="text-[#F8CB46]">Pick</span></span>
               </Link>
               {/* Mobile Logo */}
-              <Link to="/" className="md:hidden flex items-center">
+              <Link to="/" className="md:hidden flex items-center gap-2">
                 <span className="text-[#0C831F] font-black text-3xl tracking-tighter">Quick<span className="text-[#F8CB46]">Pick</span></span>
+                <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold tracking-wider ${isStoreOpen ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-red-50 text-red-500 border border-red-200'}`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${isStoreOpen ? 'bg-emerald-500' : 'bg-red-400'}`}></span>
+                  {isStoreOpen ? 'OPEN' : 'CLOSED'}
+                </span>
               </Link>
 
               <div className="hidden lg:flex flex-col justify-center pl-8 h-full cursor-pointer hover:bg-gray-50/50">
                 <span className="text-gray-900 font-extrabold text-[15px]">Delivery in 8 minutes</span>
                 <span className="text-gray-500 text-xs flex items-center gap-1 font-medium mt-0.5">
                   Chennai, Tamil Nadu <FiChevronRight className="w-3 h-3"/>
+                </span>
+              </div>
+
+              {/* Store Availability Status Badge */}
+              <div className={`hidden md:flex items-center gap-2 ml-6 px-4 py-2 rounded-full border transition-all duration-300 ${
+                isStoreOpen
+                  ? 'bg-emerald-50 border-emerald-200'
+                  : 'bg-red-50 border-red-200'
+              }`}>
+                <span className="relative flex h-2.5 w-2.5">
+                  {isStoreOpen && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                  <span className={`relative inline-flex rounded-full h-2.5 w-2.5 ${isStoreOpen ? 'bg-emerald-500' : 'bg-red-400'}`}></span>
+                </span>
+                <span className={`text-xs font-bold tracking-wide ${isStoreOpen ? 'text-emerald-700' : 'text-red-600'}`}>
+                  {isStoreOpen ? 'Available' : 'Currently Closed'}
                 </span>
               </div>
             </div>
@@ -254,6 +286,28 @@ export default function Navbar() {
                 <button onClick={() => setMobileMenuOpen(false)} className="text-gray-500 p-2 hover:bg-gray-100 rounded-full">
                   <FiX className="w-6 h-6" />
             </button>
+              </div>
+
+              {/* Mobile Store Availability Banner */}
+              <div className={`mx-5 mt-4 flex items-center gap-2.5 px-4 py-3 rounded-2xl border transition-all duration-300 ${
+                isStoreOpen
+                  ? 'bg-emerald-50 border-emerald-200'
+                  : 'bg-red-50 border-red-200'
+              }`}>
+                <span className="relative flex h-3 w-3">
+                  {isStoreOpen && (
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  )}
+                  <span className={`relative inline-flex rounded-full h-3 w-3 ${isStoreOpen ? 'bg-emerald-500' : 'bg-red-400'}`}></span>
+                </span>
+                <div>
+                  <div className={`text-sm font-bold ${isStoreOpen ? 'text-emerald-700' : 'text-red-600'}`}>
+                    {isStoreOpen ? 'Store Available' : 'Currently Closed'}
+                  </div>
+                  <div className={`text-[10px] font-medium ${isStoreOpen ? 'text-emerald-500' : 'text-red-400'}`}>
+                    {isStoreOpen ? 'Accepting orders now' : 'Please check back later'}
+                  </div>
+                </div>
               </div>
 
               <div className="flex-1 overflow-y-auto p-5 space-y-6">

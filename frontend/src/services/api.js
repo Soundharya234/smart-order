@@ -80,4 +80,8 @@ export const createAdminUser = (data) => API.post('/users/admin/create', data);
 export const updateAdminUser = (id, data) => API.put(`/users/admin/${id}`, data);
 export const deleteAdminUser = (id) => API.delete(`/users/admin/${id}`);
 
+// Store Settings
+export const getStoreSettings = () => API.get('/store-settings');
+export const toggleStoreAvailability = () => API.put('/store-settings/toggle');
+
 export default API;

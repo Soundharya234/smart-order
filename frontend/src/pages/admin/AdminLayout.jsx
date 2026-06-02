@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { FiGrid, FiPackage, FiShoppingBag, FiUsers, FiTag, FiImage, FiLogOut, FiMenu, FiX, FiAlertCircle, FiFolder, FiLock } from 'react-icons/fi';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
-import { updateProfile } from '../../services/api';
+import { updateProfile, getStoreSettings, toggleStoreAvailability } from '../../services/api';
 import AdminDashboard from './AdminDashboard';
 import AdminProducts from './AdminProducts';
 import AdminOrders from './AdminOrders';
@@ -30,6 +30,27 @@ export default function AdminLayout() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [updating, setUpdating] = useState(false);
+  const [isStoreOpen, setIsStoreOpen] = useState(true);
+  const [togglingStore, setTogglingStore] = useState(false);
+
+  // Fetch store availability on mount
+  useEffect(() => {
+    getStoreSettings().then(res => {
+      setIsStoreOpen(res.data.isStoreOpen);
+    }).catch(() => {});
+  }, []);
+
+  const handleToggleStore = async () => {
+    try {
+      setTogglingStore(true);
+      const res = await toggleStoreAvailability();
+      setIsStoreOpen(res.data.isStoreOpen);
+    } catch (err) {
+      alert('Failed to toggle store status');
+    } finally {
+      setTogglingStore(false);
+    }
+  };
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
@@ -146,7 +167,29 @@ export default function AdminLayout() {
                 <p className="text-gray-500 text-[10px] md:text-xs">{new Date().toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' })}</p>
               </div>
             </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Store Availability Toggle */}
+            <div className="flex items-center gap-2.5">
+              <span className={`text-[10px] md:text-xs font-bold tracking-wide ${isStoreOpen ? 'text-[#00C853]' : 'text-red-400'}`}>
+                {isStoreOpen ? '● OPEN' : '● CLOSED'}
+              </span>
+              <button
+                onClick={handleToggleStore}
+                disabled={togglingStore}
+                className={`relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none ${
+                  isStoreOpen
+                    ? 'bg-[#00C853] shadow-[0_0_12px_rgba(0,200,83,0.4)]'
+                    : 'bg-[#3A3A3A]'
+                } ${togglingStore ? 'opacity-60' : ''}`}
+                title={isStoreOpen ? 'Store is OPEN — click to close' : 'Store is CLOSED — click to open'}
+              >
+                <motion.div
+                  className="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow-md"
+                  animate={{ left: isStoreOpen ? '26px' : '2px' }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+                />
+              </button>
+            </div>
             <Link to="/" className="text-gray-400 hover:text-white text-xs border border-[#2E2E2E] px-3 py-1.5 rounded-xl transition-all">View Store</Link>
           </div>
         </header>
