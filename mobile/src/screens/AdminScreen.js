@@ -51,6 +51,7 @@ export default function AdminScreen({ navigation }) {
   const [users, setUsers] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isStoreOpen, setIsStoreOpen] = useState(true);
 
   // CRUD Product Form States
   const [productModalVisible, setProductModalVisible] = useState(false);
@@ -93,16 +94,18 @@ export default function AdminScreen({ navigation }) {
 
   const fetchAll = async () => {
     try {
-      const [pRes, oRes, uRes, cRes] = await Promise.all([
+      const [pRes, oRes, uRes, cRes, sRes] = await Promise.all([
         api.get('/products'),
         api.get('/orders/admin/all'),
         api.get('/users/admin/all'),
         api.get('/categories'),
+        api.get('/store-settings'),
       ]);
       setProducts(pRes.data.products || []);
       setOrders(oRes.data.orders || []);
       setUsers(uRes.data.users || []);
       setCategories(cRes.data.categories || []);
+      setIsStoreOpen(sRes.data?.isStoreOpen ?? true);
       setStats({
         products: pRes.data.total || pRes.data.products?.length || 0,
         orders: oRes.data.total || oRes.data.orders?.length || 0,
@@ -119,6 +122,18 @@ export default function AdminScreen({ navigation }) {
   const handleLogout = () => {
     dispatch(logout());
     navigation.replace('Auth');
+  };
+
+  const toggleStoreAvailability = async () => {
+    try {
+      const res = await api.put('/store-settings/toggle');
+      if (res.data.success) {
+        setIsStoreOpen(res.data.isStoreOpen);
+        Toast.show({ type: 'success', text1: 'Store Status Updated', text2: res.data.isStoreOpen ? 'Store is now OPEN' : 'Store is now CLOSED' });
+      }
+    } catch (error) {
+      Toast.show({ type: 'error', text1: 'Error updating store status' });
+    }
   };
 
   // Product CRUD Handlers
@@ -390,9 +405,33 @@ export default function AdminScreen({ navigation }) {
       case 'Dashboard':
         return (
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: r.isMobile ? 16 : 24 }}>
-            <Text style={{ fontSize: r.fontSize['2xl'], fontWeight: '800', color: '#fff', marginBottom: 20 }}>
-              Welcome back, {user?.name?.split(' ')[0]} 👋
-            </Text>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: r.fontSize['2xl'], fontWeight: '800', color: '#fff' }}>
+                Welcome back, {user?.name?.split(' ')[0]} 👋
+              </Text>
+              
+              {/* Store Availability Toggle */}
+              <TouchableOpacity
+                onPress={toggleStoreAvailability}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  backgroundColor: isStoreOpen ? '#0C831F22' : '#DC262622',
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 12,
+                  borderWidth: 1,
+                  borderColor: isStoreOpen ? '#0C831F' : '#DC2626',
+                  gap: 8,
+                }}
+              >
+                <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: isStoreOpen ? '#00C853' : '#DC2626' }} />
+                <Text style={{ color: isStoreOpen ? '#00C853' : '#DC2626', fontWeight: '700', fontSize: r.fontSize.sm }}>
+                  {isStoreOpen ? 'Store OPEN' : 'Store CLOSED'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', margin: -4, marginBottom: 24 }}>
               <StatCard label="Total Products" value={stats?.products || 0} icon="📦" color="#F8CB46" />
               <StatCard label="Total Orders" value={stats?.orders || 0} icon="🛒" color="#00C853" />

@@ -1,6 +1,7 @@
 {
   "version": 2,
   "buildCommand": "npx expo export -p web",
+  "installCommand": "npm install --legacy-peer-deps",
   "outputDirectory": "dist",
   "rewrites": [
     {

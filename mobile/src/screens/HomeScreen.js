@@ -8,7 +8,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useResponsive } from '../utils/responsive';
 import ProductCard from '../components/ProductCard';
-import { getProducts, getCategories, getBanners } from '../services/api';
+import api, { getProducts, getCategories, getBanners } from '../services/api';
 
 export default function HomeScreen({ searchQuery }) {
   const r = useResponsive();
@@ -18,17 +18,20 @@ export default function HomeScreen({ searchQuery }) {
   const [selectedCat, setSelectedCat] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [isStoreOpen, setIsStoreOpen] = useState(true);
 
   const fetchData = useCallback(async () => {
     try {
-      const [pRes, cRes, bRes] = await Promise.all([
+      const [pRes, cRes, bRes, sRes] = await Promise.all([
         getProducts({ limit: 40 }),
         getCategories(),
         getBanners(),
+        api.get('/store-settings'),
       ]);
       setProducts(pRes.data.products || []);
       setCategories(cRes.data.categories || []);
       setBanners(bRes.data.banners || []);
+      setIsStoreOpen(sRes.data?.isStoreOpen ?? true);
     } catch (e) {
       console.log('fetch error', e?.message);
     } finally {
@@ -108,6 +111,32 @@ export default function HomeScreen({ searchQuery }) {
             </View>
           ))}
         </ScrollView>
+      )}
+
+      {/* Store Closed Banner */}
+      {!isStoreOpen && (
+        <View style={{
+          backgroundColor: '#FEF2F2',
+          borderColor: '#F87171',
+          borderWidth: 1,
+          padding: 14,
+          marginHorizontal: horizontalPad,
+          borderRadius: 12,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: 12,
+          marginBottom: 20,
+        }}>
+          <Text style={{ fontSize: 24 }}>🏪</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: r.fontSize.base, fontWeight: '800', color: '#B91C1C' }}>
+              Currently Not Taking Orders
+            </Text>
+            <Text style={{ fontSize: r.fontSize.sm, color: '#DC2626', marginTop: 2, lineHeight: 18 }}>
+              Store is currently closed. You can browse our products, but cannot place an order right now.
+            </Text>
+          </View>
+        </View>
       )}
 
       <View style={{ paddingHorizontal: horizontalPad }}>
