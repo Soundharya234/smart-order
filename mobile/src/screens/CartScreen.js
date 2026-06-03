@@ -23,6 +23,12 @@ export default function CartScreen({ navigation }) {
   const [checkoutVisible, setCheckoutVisible] = useState(false);
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
+
+  // Qty Modal State
+  const [qtyModalVisible, setQtyModalVisible] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [customBulkMode, setCustomBulkMode] = useState(false);
+  const [customQtyInput, setCustomQtyInput] = useState('');
   const [city, setCity] = useState('Chennai');
   const [stateName, setStateName] = useState('Tamil Nadu');
   const [pincode, setPincode] = useState('600001');
@@ -162,40 +168,34 @@ export default function CartScreen({ navigation }) {
                     overflow: 'hidden',
                   }}>
                     <TouchableOpacity
-                      onPress={() => item.quantity > 1
-                        ? dispatch(updateItem({ productId: item.product?._id, qty: item.quantity - 1 }))
-                        : dispatch(removeItem(item.product?._id))
-                      }
-                      style={{ padding: 8, backgroundColor: '#F5F5F5' }}
+                      onPress={() => dispatch(removeItem(item.product?._id))}
+                      style={{ padding: 8, backgroundColor: '#FEE2E2', borderRadius: 6, marginRight: 8 }}
                       disabled={loading}
                     >
-                      <Ionicons name={item.quantity === 1 ? 'trash-outline' : 'remove'} size={16} color={item.quantity === 1 ? '#DC2626' : '#1C1C1C'} />
+                      <Ionicons name="trash-outline" size={16} color="#DC2626" />
                     </TouchableOpacity>
-                    <TextInput
-                      value={String(item.quantity)}
-                      keyboardType="numeric"
-                      onChangeText={(val) => {
-                        const parsed = parseInt(val, 10);
-                        if (!isNaN(parsed) && parsed > 0) {
-                          dispatch(updateItem({ productId: item.product?._id, qty: parsed }));
-                        }
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        setSelectedItem(item);
+                        setCustomBulkMode(false);
+                        setCustomQtyInput(String(item.quantity));
+                        setQtyModalVisible(true);
                       }}
                       style={{
-                        paddingHorizontal: 10,
-                        paddingVertical: 4,
-                        fontWeight: '800',
-                        color: '#1C1C1C',
-                        fontSize: r.fontSize.base,
-                        textAlign: 'center',
-                        minWidth: 40,
+                        paddingHorizontal: 12,
+                        paddingVertical: 8,
+                        backgroundColor: '#F3F4F6',
+                        borderRadius: 6,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 6
                       }}
-                    />
-                    <TouchableOpacity
-                      onPress={() => dispatch(updateItem({ productId: item.product?._id, qty: item.quantity + 1 }))}
-                      style={{ padding: 8, backgroundColor: '#0C831F' }}
-                      disabled={loading}
                     >
-                      <Ionicons name="add" size={16} color="#fff" />
+                      <Text style={{ fontSize: r.fontSize.sm, fontWeight: '700', color: '#1C1C1C' }}>
+                        Qty: {item.quantity === 0.25 ? '1/4' : item.quantity === 0.5 ? '1/2' : item.quantity}
+                      </Text>
+                      <Ionicons name="chevron-down" size={14} color="#4B5563" />
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -464,6 +464,77 @@ export default function CartScreen({ navigation }) {
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
+      </Modal>
+
+      {/* Quantity Selection Modal */}
+      <Modal visible={qtyModalVisible} transparent animationType="fade">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' }}>
+          <View style={{ backgroundColor: '#fff', borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 24 }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+              <Text style={{ fontSize: r.fontSize.lg, fontWeight: '800', color: '#1C1C1C' }}>
+                Select Quantity
+              </Text>
+              <TouchableOpacity onPress={() => setQtyModalVisible(false)} style={{ padding: 4 }}>
+                <Ionicons name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            {!customBulkMode ? (
+              <View style={{ gap: 10 }}>
+                {[
+                  { label: '1/4 kg (250g)', val: 0.25 },
+                  { label: '1/2 kg (500g)', val: 0.5 },
+                  { label: '1 kg', val: 1 },
+                  { label: '2 kg', val: 2 },
+                  { label: '5 kg', val: 5 }
+                ].map(opt => (
+                  <TouchableOpacity
+                    key={opt.val}
+                    onPress={() => {
+                      dispatch(updateItem({ productId: selectedItem?.product?._id, qty: opt.val }));
+                      setQtyModalVisible(false);
+                    }}
+                    style={{ padding: 14, backgroundColor: selectedItem?.quantity === opt.val ? '#E8F5E9' : '#F3F4F6', borderRadius: 8, alignItems: 'center' }}
+                  >
+                    <Text style={{ fontSize: r.fontSize.base, fontWeight: '700', color: selectedItem?.quantity === opt.val ? '#0C831F' : '#1C1C1C' }}>{opt.label}</Text>
+                  </TouchableOpacity>
+                ))}
+                
+                <TouchableOpacity
+                  onPress={() => setCustomBulkMode(true)}
+                  style={{ padding: 14, backgroundColor: '#FEF2F2', borderRadius: 8, alignItems: 'center', marginTop: 10 }}
+                >
+                  <Text style={{ fontSize: r.fontSize.base, fontWeight: '800', color: '#DC2626' }}>+ Bulk Order (Custom Type)</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={{ gap: 15 }}>
+                <Text style={{ color: '#4B5563', fontSize: r.fontSize.sm }}>Enter bulk quantity manually (e.g. 50):</Text>
+                <TextInput
+                  value={customQtyInput}
+                  onChangeText={setCustomQtyInput}
+                  keyboardType="numeric"
+                  autoFocus
+                  style={{ borderWidth: 1, borderColor: '#D1D5DB', borderRadius: 8, padding: 16, fontSize: r.fontSize.xl, fontWeight: '800', textAlign: 'center', color: '#1C1C1C' }}
+                />
+                <TouchableOpacity
+                  onPress={() => {
+                    const parsed = parseFloat(customQtyInput);
+                    if (!isNaN(parsed) && parsed > 0) {
+                      dispatch(updateItem({ productId: selectedItem?.product?._id, qty: parsed }));
+                      setQtyModalVisible(false);
+                    } else {
+                      Toast.show({ type: 'error', text1: 'Invalid Quantity', text2: 'Please enter a valid number greater than 0' });
+                    }
+                  }}
+                  style={{ backgroundColor: '#0C831F', padding: 16, borderRadius: 8, alignItems: 'center' }}
+                >
+                  <Text style={{ color: '#fff', fontSize: r.fontSize.base, fontWeight: '800' }}>Confirm Quantity</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
       </Modal>
     </SafeAreaView>
   );
